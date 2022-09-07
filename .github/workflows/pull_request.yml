@@ -5,9 +5,9 @@ name: CI
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -39,16 +39,17 @@ jobs:
       - name: Setup Golang
         uses: actions/setup-go@v2
         with:
-          go-version: '1.14.12'
+          go-version: '1.19.1'
 
       # Setup the run environment and run CI test suite
       - name: Run test suite
         run: |
           export os=$(go env GOOS)
           export arch=$(go env GOARCH)
-          sudo mkdir -p /usr/local/kubebuilder
-          curl -sL https://go.kubebuilder.io/dl/2.0.0-beta.0/${os}/${arch} | sudo tar -xz --strip-component 1 -C /usr/local/kubebuilder kubebuilder_2.0.0-beta.0_${os}_${arch}/bin
-          export PATH=$PATH:/usr/local/kubebuilder/bin
+          sudo mkdir -p /usr/local/bin/
+          curl -L -o kubebuilder https://go.kubebuilder.io/dl/latest/${os}/${arch}
+          chmod +x kubebuilder && sudo mv kubebuilder /usr/local/bin/
+          export PATH=$PATH:/usr/local/bin
           cd ${GITHUB_WORKSPACE}/go/src/github.com/${GITHUB_REPOSITORY}
           GOPATH=${GITHUB_WORKSPACE}/go KUBEBUILDER_CONTROLPLANE_START_TIMEOUT=60s make ci
 
